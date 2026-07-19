@@ -1,0 +1,7 @@
+# Core pipeline dependencies (parsing, AI extraction, layout, XML export, CLI)
+requests>=2.31.0
+
+# Optional / dev only — used solely by tests/visualize_layout.py to render
+# debug PNG previews of the computed layout. Not required to run the CLI
+# or the core convert() pipeline.
+# matplotlib>=3.8.0

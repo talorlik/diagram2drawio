@@ -1,0 +1,59 @@
+flowchart TD
+  subgraph Edge["Edge & CDN"]
+    User[Customer Browser]
+    CF(CloudFront)
+    R53(Route 53)
+  end
+
+  subgraph Network["VPC - Public Subnet"]
+    ALB(Elastic Load Balancer)
+    APIGW(API Gateway)
+    WAFR(WAF)
+  end
+
+  subgraph Compute["Compute Tier"]
+    ECSFleet(ECS Fargate Service)
+    OrderFn(Lambda - Order Processor)
+    InventoryFn(Lambda - Inventory Sync)
+    Auth(Cognito)
+  end
+
+  subgraph Messaging["Async & Events"]
+    OrdersQueue(SQS - Orders Queue)
+    NotifyTopic(SNS - Notifications)
+    Bus(EventBridge)
+  end
+
+  subgraph Data["Data Tier"]
+    OrdersDB[(DynamoDB - Orders)]
+    CatalogDB[(RDS - Catalog)]
+    SessionCache[(ElastiCache - Redis)]
+    AssetsBucket[(S3 - Product Images)]
+  end
+
+  subgraph Observability["Monitoring"]
+    CW(CloudWatch)
+    Trail(CloudTrail)
+  end
+
+  User -->|HTTPS| CF
+  CF --> R53
+  CF --> WAFR
+  WAFR --> ALB
+  ALB --> APIGW
+  APIGW --> Auth
+  APIGW -->|invoke| ECSFleet
+  APIGW -->|invoke| OrderFn
+  ECSFleet --> CatalogDB
+  ECSFleet --> SessionCache
+  ECSFleet --> AssetsBucket
+  OrderFn --> OrdersDB
+  OrderFn --> OrdersQueue
+  OrdersQueue --> InventoryFn
+  InventoryFn --> CatalogDB
+  InventoryFn --> Bus
+  Bus --> NotifyTopic
+  ECSFleet --> CW
+  OrderFn --> CW
+  InventoryFn --> CW
+  APIGW --> Trail

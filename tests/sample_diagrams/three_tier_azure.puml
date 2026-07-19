@@ -1,0 +1,55 @@
+@startuml
+title Three-Tier Azure Web Platform
+
+actor "End User" as User
+
+package "Edge" {
+  [Front Door] as FD
+  [API Management] as APIM
+}
+
+package "Application Tier" {
+  component "App Service" as WebApp
+  component "Function App" as OrderFn
+  [AKS Cluster] as AKS
+}
+
+package "Integration" {
+  [Service Bus] as SB
+  [Event Grid] as EG
+}
+
+package "Data Tier" {
+  database "SQL Database" as SQLDB
+  database "Cosmos DB" as CosmosDB
+  [Storage Account] as Blob
+  [Cache for Redis] as Cache
+}
+
+package "Security" {
+  [Key Vault] as KV
+  [Azure Active Directory] as AAD
+}
+
+package "Monitoring" {
+  [Azure Monitor] as Monitor
+  [Application Insights] as AppInsights
+}
+
+User --> FD : HTTPS
+FD --> APIM
+APIM --> AAD
+APIM --> WebApp
+APIM --> OrderFn
+WebApp --> AKS
+AKS --> SQLDB
+AKS --> Cache
+OrderFn --> SB
+SB --> AKS
+AKS ..> Blob : read/write
+OrderFn --> CosmosDB
+AKS --> KV
+OrderFn --> EG
+WebApp --> AppInsights
+AKS --> Monitor
+@enduml

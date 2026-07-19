@@ -1,0 +1,9 @@
+graph LR
+  User(Mobile App) --> APIGW(API Gateway)
+  APIGW --> Lambda(Lambda)
+  Lambda --> DynamoDB[(DynamoDB)]
+  Lambda -->|sync| ServiceBus(Service Bus)
+  ServiceBus --> FunctionApp(Function App)
+  FunctionApp --> CosmosDB[(Cosmos DB)]
+  Lambda --> CW(CloudWatch)
+  FunctionApp --> Monitor(Azure Monitor)
