@@ -32,6 +32,7 @@ from typing import Optional
 
 import requests
 
+from ..env import load_dotenv
 from ..models import Edge, Graph, Node
 
 EXTRACTION_SYSTEM_PROMPT = """You are an expert cloud solutions architect. You will be shown an image of a \
@@ -205,13 +206,16 @@ def extract_from_image(
     """Run the AI pre-processing extraction step on a diagram image.
 
     api_provider: "openai" | "anthropic"
-    api_key: falls back to OPENAI_API_KEY / ANTHROPIC_API_KEY env vars
+    api_key: falls back to OPENAI_API_KEY / ANTHROPIC_API_KEY from the
+             process env or a project-root ``.env`` file
     model: defaults to "gpt-4o" for OpenAI or "claude-sonnet-4-5" for Anthropic
     mock: force the deterministic stub extractor (no network call)
     """
-    api_key = api_key or os.environ.get(
-        "OPENAI_API_KEY" if api_provider == "openai" else "ANTHROPIC_API_KEY"
-    )
+    if not api_key:
+        load_dotenv()
+        api_key = os.environ.get(
+            "OPENAI_API_KEY" if api_provider == "openai" else "ANTHROPIC_API_KEY"
+        )
 
     if mock or not api_key:
         payload = _mock_extract(image_path)

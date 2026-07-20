@@ -3,13 +3,16 @@ Smoke tests for the full pipeline. Run with: python tests/test_pipeline.py
 Not pytest-based on purpose -- zero extra dependencies needed to verify the
 generated .drawio files are well-formed and structurally sane.
 """
+import os
 import sys
+import tempfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
+from diagram2drawio.env import load_dotenv  # noqa: E402
 from diagram2drawio.pipeline import convert, load_graph  # noqa: E402
 from diagram2drawio.enrichment import enrich_graph_with_icons  # noqa: E402
 
@@ -47,7 +50,31 @@ def run_case(name, input_file, min_nodes, min_edges, **kwargs):
     print(f"  OK -> {out_path}")
 
 
+def test_dotenv_loading():
+    print("\n=== .env loading ===")
+    sentinel = "DIAGRAM2DRAWIO_DOTENV_SMOKE"
+    os.environ.pop(sentinel, None)
+    with tempfile.TemporaryDirectory() as tmp:
+        env_path = Path(tmp) / ".env"
+        env_path.write_text(
+            f"# comment\nexport {sentinel}=from-dotenv\nOTHER='quoted'\n",
+            encoding="utf-8",
+        )
+        loaded = load_dotenv(env_path, override=True)
+        assert loaded == env_path, f"expected to load {env_path}, got {loaded}"
+        assert os.environ.get(sentinel) == "from-dotenv"
+        assert os.environ.get("OTHER") == "quoted"
+        # Existing env wins when override=False
+        os.environ[sentinel] = "already-set"
+        load_dotenv(env_path, override=False)
+        assert os.environ[sentinel] == "already-set"
+    os.environ.pop(sentinel, None)
+    os.environ.pop("OTHER", None)
+    print("  OK")
+
+
 def main():
+    test_dotenv_loading()
     run_case("Mermaid AWS e-commerce (explicit subgraphs)", Path("ecommerce_aws.mmd"), min_nodes=19, min_edges=20)
     run_case("PlantUML Azure three-tier (explicit packages)", Path("three_tier_azure.puml"), min_nodes=15, min_edges=15)
     run_case("Mermaid hybrid, no explicit groups (auto layering)", Path("hybrid_no_groups.mmd"), min_nodes=7, min_edges=7)

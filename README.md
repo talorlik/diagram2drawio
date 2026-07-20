@@ -52,21 +52,22 @@ diagram2drawio/
 
 ## Installation
 
+From the repository root (where `requirements.txt` lives):
+
 ```bash
-cd diagram2drawio
 pip install -r requirements.txt
 ```
 
 The core pipeline only needs `requests` (used by the AI image-extraction HTTP calls). No API key is required to convert Mermaid or PlantUML text specs — those are parsed locally with no network calls.
 
-For image inputs with real AI extraction, set one of:
+For image inputs with real AI extraction, copy `.env.example` to `.env` and fill in a key:
 
 ```bash
-export OPENAI_API_KEY="sk-..."       # for --ai-provider openai (default)
-export ANTHROPIC_API_KEY="sk-ant-..." # for --ai-provider anthropic
+cp .env.example .env
+# edit .env — set OPENAI_API_KEY and/or ANTHROPIC_API_KEY
 ```
 
-If neither key is set (or you pass `--mock`), image inputs fall back to a deterministic **mock extractor** so you can exercise the full pipeline without any API access.
+Exported environment variables still work and take precedence over `.env`. You can also pass `--api-key`. If no key is available (or you pass `--mock`), image inputs fall back to a deterministic **mock extractor** so you can exercise the full pipeline without any API access.
 
 ## CLI usage
 
@@ -93,7 +94,7 @@ Flags:
 | `--input-format` | `image` \| `mermaid` \| `plantuml` | Force format instead of auto-detecting from extension/content |
 | `--provider` | `auto` \| `aws` \| `azure` | Icon set. `auto` (default) infers AWS vs Azure **per node** from its label, so a single diagram can mix both clouds correctly |
 | `--ai-provider` | `openai` \| `anthropic` | Vision LLM for image inputs |
-| `--api-key` | string | Overrides `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` |
+| `--api-key` | string | Overrides `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` (env or `.env`) |
 | `--mock` | flag | Skip real AI calls for image inputs; use a deterministic 5-node sample graph |
 
 Or call it from Python directly:

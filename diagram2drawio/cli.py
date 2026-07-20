@@ -28,7 +28,7 @@ def main(argv=None) -> int:
     p_convert.add_argument("--ai-provider", choices=["openai", "anthropic"], default="openai",
                             help="Vision LLM used for image inputs (default: openai)")
     p_convert.add_argument("--api-key", default=None,
-                            help="API key for the AI provider (falls back to OPENAI_API_KEY/ANTHROPIC_API_KEY env vars)")
+                            help="API key for the AI provider (falls back to OPENAI_API_KEY/ANTHROPIC_API_KEY from env or .env)")
     p_convert.add_argument("--mock", action="store_true",
                             help="Use a deterministic mock extractor for image inputs instead of calling a real API (testing/demo only)")
 
